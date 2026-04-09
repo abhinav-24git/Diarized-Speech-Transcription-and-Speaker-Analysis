@@ -161,3 +161,17 @@ cython_debug/
 
 # Ignore uploads directory
 uploads/
+
+# Project specific
+temp_audio_pyannote.wav
+temp_audio_groq.mp3
+ffmpeg.zip
+image.png
+*.mp3
+*.wav
+*.zip
+.cache/
+__pycache__/
+venv/
+.env
+.DS_Store

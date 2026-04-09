@@ -2,12 +2,12 @@ import re
 from collections import defaultdict
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from groq import Groq
+from groq_manager import GroqManager
 import os
 import json
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-client = Groq(api_key=GROQ_API_KEY)
+manager = GroqManager()
+client = manager.get_client()
 
 # ---------------------------
 # BASIC HELPERS
@@ -198,22 +198,27 @@ def confidence_score(segments):
     return final
 
 
-# ---------------------------
-# TOPIC METRICS
-# ---------------------------
+def safe_truncate_transcript(text, max_chars=100000):
+    if len(text) > max_chars:
+        return text[:max_chars] + "\n\n[TRUNCATED...]"
+    return text
 
 def topic_metrics(segments, topic):
     text_blocks = "\n".join([
         f"{i}. {seg['speaker']}: {seg['text']}"
         for i, seg in enumerate(segments)
     ])
+    text_blocks = safe_truncate_transcript(text_blocks)
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "user",
-                "content": f"""
+
+    def _call_topic(inner_client, inner_model):
+        return inner_client.chat.completions.create(
+            model=inner_model,
+            temperature=0.1,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"""
 Rate each line's relevance to the topic from 0 to 1.
 
 STRICT:
@@ -232,11 +237,11 @@ Expected format:
   "1": 0.2
 }}
 """
-            }
-        ]
-    )
+                }
+            ]
+        ).choices[0].message.content.strip()
 
-    raw = response.choices[0].message.content.strip()
+    raw = manager.execute_with_retry(_call_topic)
 
     print("\nRAW LLM OUTPUT:\n", raw)
 

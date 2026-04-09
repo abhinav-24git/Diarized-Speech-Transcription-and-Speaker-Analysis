@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,197 +13,241 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
-<div class="container-fluid py-4 px-4 mx-auto" style="max-width: 1600px;">
-
-    <!-- 1. Header Section (Workflow Start) -->
-    <div class="glass-panel p-4 mb-4" id="uploadSectionContainer">
-        <form id="uploadForm" action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data" class="row g-3 align-items-center justify-content-center">
-            
-            <div class="col-12 col-md-4">
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-subtle text-muted-custom border-end-0">
-                        <i class="fa-solid fa-microphone-lines"></i>
-                    </span>
-                    <input type="file" class="form-control modern-input border-start-0" name="file" accept=".wav,.mp3,.m4a" required>
-                </div>
-            </div>
-
-            <div class="col-12 col-md-3">
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-subtle text-muted-custom border-end-0">
-                        <i class="fa-solid fa-tags"></i>
-                    </span>
-                    <input type="text" class="form-control modern-input border-start-0" name="topic" placeholder="Meeting Topic" required>
-                </div>
-            </div>
-
-            <div class="col-12 col-md-3">
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-subtle text-muted-custom border-end-0">
-                        <i class="fa-solid fa-users"></i>
-                    </span>
-                    <input type="number" class="form-control modern-input border-start-0" name="num_speakers" placeholder="Speakers (Optional)" min="1" max="10">
-                </div>
-            </div>
-
-            <div class="col-12 col-md-2">
-                <button class="btn w-100 glow-btn py-2" id="analyzeBtn" type="submit">
-                    ANALYSE
-                </button>
-            </div>
-            
-        </form>
+    <!-- Theme Toggle -->
+    <div class="container-fluid pt-3 pe-4 d-flex justify-content-end position-absolute"
+        style="top:0; right:0; z-index: 1000;">
+        <button id="themeToggle" class="theme-switch" title="Toggle Light/Dark Theme">
+            <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
     </div>
 
-    <!-- Loading State -->
-    <div id="loadingSection" style="display: none;" class="glass-panel text-center my-5 py-5">
-        <div class="spinner-border neon-spinner" style="width: 3rem; height: 3rem;" role="status"></div>
-        <h4 class="mt-4 text-main">Processing Architecture...</h4>
-        <p class="text-muted-custom">Extracting vectors and embeddings.</p>
-    </div>
+    <div class="container-fluid py-4 px-4 mx-auto" style="max-width: 1600px; position: relative; z-index: 1;">
 
-    <!-- Main Dashboard Body -->
-    <div id="resultSection" style="display: none;">
-        
-        <!-- 2. Top Metric Row ("At-a-Glance") -->
-        <div class="row g-3 justify-content-center mb-4">
-            <div class="col-12 col-md-3">
-                <div class="top-metric-card">
-                    <i class="fa-solid fa-bullseye metric-label-icon"></i>
-                    <div class="metric-title">Intent</div>
-                    <div class="metric-value" id="topIntent">--</div>
-                </div>
-            </div>
-            <div class="col-12 col-md-3">
-                <div class="top-metric-card">
-                    <i class="fa-solid fa-align-left metric-label-icon" style="color: var(--accent-purple);"></i>
-                    <div class="metric-title">Summary</div>
-                    <div class="metric-value" style="font-size: 0.85rem;" id="topSummary">--</div>
-                </div>
-            </div>
-            <div class="col-12 col-md-3">
-                <div class="top-metric-card">
-                    <i class="fa-solid fa-scale-balanced metric-label-icon" style="color: var(--sema-neu);"></i>
-                    <div class="metric-title">Decision Impact</div>
-                    <div class="metric-value" id="topImpact" style="margin-bottom: 8px;">--</div>
-                    <!-- Success Meter -->
-                    <div class="progress progress-dark" id="impactProgressContainer">
-                        <div class="progress-bar" id="impactProgressBar" role="progressbar" style="width: 0%; background-color: var(--accent-cyan);"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-md-3">
-                <div class="top-metric-card">
-                    <i class="fa-solid fa-list-check metric-label-icon" style="color: var(--sema-pos);"></i>
-                    <div class="metric-title">Action Items</div>
-                    <div class="metric-value" style="font-size: 0.85rem;" id="topActions">--</div>
-                </div>
-            </div>
-        </div>
+        <!-- 1. Landing Page / Hero Section -->
+        <div id="uploadSectionContainer" class="hero-container">
+            <h1 class="hero-title">AI Meeting Analyst</h1>
+            <p class="hero-subtitle">Upload audio to instantly generate diarized transcripts, speaker insights, and
+                actionable meeting summaries.</p>
 
-        <!-- 3. The Main Analytics Body (Split View) -->
-        <div class="row g-4">
-            
-            <!-- Left Side: Diarized Transcript (Glass Panel) -->
-            <div class="col-12 col-lg-7">
-                <div class="glass-panel h-100 p-4">
-                    <h5 class="mb-4 text-muted-custom fs-6 text-uppercase letter-spacing">Transcript Log</h5>
-                    <div id="transcriptContent" class="transcript-box pe-2">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Side: Visual Insights -->
-            <div class="col-12 col-lg-5 d-flex flex-column gap-4">
-                
-                <!-- Share & Ranking Block -->
-                <div class="glass-panel p-4">
-                    <div class="row">
-                        <!-- Left inside panel: Chart -->
-                        <div class="col-5 border-end border-slate-800">
-                            <h5 class="text-muted-custom fs-6 text-uppercase mb-3">Share</h5>
-                            <div style="height: 160px; width: 100%;">
-                                <canvas id="speakingShareChart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <!-- Right inside panel: Rankings horizontally -->
-                        <div class="col-7 ps-4">
-                            <h5 class="text-muted-custom fs-6 text-uppercase mb-3">Rankings</h5>
-                            <div id="leaderboardContainer" class="d-flex flex-column gap-3">
-                                <!-- Populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Speaker Deep-Dive (Accordions) -->
-                <div class="glass-panel p-4 flex-grow-1">
-                    <h5 class="text-muted-custom fs-6 text-uppercase mb-4">Speaker Deep Dive</h5>
-                    <div id="speakerAccordions">
-                        <!-- Populated iteratively by JS for each speaker -->
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- Final Interaction Comparison Box (Footer) -->
-        <div class="glass-panel p-4 mt-4 mb-5">
-            <h5 class="text-muted-custom fs-6 text-uppercase mb-4 text-center">Interaction Dynamics</h5>
-            <div class="row g-4 align-items-center">
-                <!-- Flow Chart -->
-                <div class="col-12 col-md-5 border-end border-slate-800">
-                    <div style="height: 250px; width: 100%;">
-                        <canvas id="interactionRadarChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Sliders / Gauges -->
-                <div class="col-12 col-md-7 ps-md-5">
-                    
-                    <div class="mb-5">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted-custom text-uppercase fs-6"><i class="fa-solid fa-handshake-angle me-2 sw-pos"></i>Agreement</span>
-                            <span class="text-muted-custom text-uppercase fs-6">Conflict<i class="fa-solid fa-bolt ms-2 sw-neg"></i></span>
-                        </div>
-                        <div class="progress progress-dark" style="height: 8px;">
-                            <!-- Dynamically offset to show slider pos -->
-                            <div id="conflictSlider" class="progress-bar bg-secondary" role="progressbar" style="width: 50%; border-radius: 8px;"></div>
-                        </div>
-                    </div>
+            <div class="glass-panel p-4 hero-upload-card">
+                <form id="uploadForm" action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data"
+                    class="d-flex flex-column gap-4">
 
                     <div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-main fw-bold">Task Completion Estimate</span>
-                            <span class="text-accent-cyan fw-bold" id="taskCompletionPct">0%</span>
+                        <label class="form-label text-muted-custom fw-semibold mb-2 text-uppercase"
+                            style="font-size: 0.8rem;">Select Audio File</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text border-end-0"><i
+                                    class="fa-solid fa-microphone-lines"></i></span>
+                            <input type="file" class="form-control modern-input border-start-0" name="file"
+                                accept=".wav,.mp3,.m4a" required>
                         </div>
-                        <div class="progress progress-dark" style="height: 12px; border-radius: 8px; border: 1px solid var(--border-subtle);">
-                            <div id="taskCompletionGauge" class="progress-bar" role="progressbar" style="width: 0%; background-color: var(--accent-cyan);"></div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-7">
+                            <label class="form-label text-muted-custom fw-semibold mb-2 text-uppercase"
+                                style="font-size: 0.8rem;">Meeting Topic</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0"><i class="fa-solid fa-tags"></i></span>
+                                <input type="text" class="form-control modern-input border-start-0" name="topic"
+                                    placeholder="e.g. Q3 Roadmap Planning" id="meetingTopicInput" required>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <label class="form-label text-muted-custom fw-semibold mb-2 text-uppercase"
+                                style="font-size: 0.8rem;">Expected Speakers</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0"><i class="fa-solid fa-users"></i></span>
+                                <input type="number" class="form-control modern-input border-start-0"
+                                    name="num_speakers" placeholder="Auto-detect if blank" min="1" max="10">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn w-100 glow-btn py-3 mt-2 fs-5" id="analyzeBtn" type="submit">
+                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Analyze Meeting
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingSection" style="display: none;"
+            class="glass-panel text-center my-5 p-5 hero-upload-card mx-auto">
+            <div class="spinner-border neon-spinner mb-4" style="width: 3rem; height: 3rem;" role="status"></div>
+            <h4 class="text-main mb-2">Processing Audio...</h4>
+            <p class="text-muted-custom">Diarizing speakers, running LLM inference, and mapping conversational vectors.
+            </p>
+        </div>
+
+        <!-- 2. Main Dashboard Body -->
+        <div id="resultSection" style="display: none;">
+
+            <div class="mb-4 border-bottom border-subtle pb-3 d-flex justify-content-between align-items-end">
+                <div>
+                    <div class="text-accent-cyan text-uppercase fw-bold"
+                        style="font-size: 0.75rem; letter-spacing: 1px;">Meeting Dashboard</div>
+                    <h2 class="mt-1 mb-0" id="dashboardTopicTitle">Topic Name</h2>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" onclick="location.reload();"><i
+                        class="fa-solid fa-arrow-left me-2"></i>Analyze Another</button>
+            </div>
+
+            <!-- Executive Overview (Wide Panels) -->
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-lg-7">
+                    <div class="glass-panel p-4 h-100">
+                        <h5 class="text-muted-custom fs-6 text-uppercase mb-3"><i class="fa-solid fa-align-left me-2"
+                                style="color: var(--accent-purple);"></i>Executive Summary</h5>
+                        <div class="exec-overview-text" id="topSummary">--</div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-5">
+                    <div class="glass-panel p-4 h-100">
+                        <h5 class="text-muted-custom fs-6 text-uppercase mb-3"><i class="fa-solid fa-list-check me-2"
+                                style="color: var(--sema-pos);"></i>Action Items</h5>
+                        <div class="exec-overview-text" id="topActions" style="border-left-color: var(--sema-pos);">--
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Metrics -->
+            <div class="row g-3 justify-content-center mb-4">
+                <div class="col-12 col-md-4">
+                    <div class="top-metric-card d-flex align-items-center">
+                        <div class="me-3"><i class="fa-solid fa-bullseye metric-label-icon fs-2"></i></div>
+                        <div>
+                            <div class="metric-title mb-1">Primary Intent</div>
+                            <div class="metric-value fs-5" id="topIntent">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="top-metric-card d-flex flex-column justify-content-center">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="me-3"><i class="fa-solid fa-scale-balanced metric-label-icon fs-3"
+                                    style="color: var(--sema-neu);"></i></div>
+                            <div>
+                                <div class="metric-title mb-0">Decision Impact</div>
+                                <div class="metric-value" id="topImpact">--</div>
+                            </div>
+                        </div>
+                        <div class="progress progress-dark" id="impactProgressContainer">
+                            <div class="progress-bar" id="impactProgressBar" role="progressbar"
+                                style="width: 0%; background-color: var(--accent-cyan);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="top-metric-card d-flex flex-column justify-content-center">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3"><i class="fa-solid fa-bars-progress metric-label-icon fs-3"
+                                        style="color: var(--sema-pos);"></i></div>
+                                <div class="metric-title mb-0">Task Completion</div>
+                            </div>
+                            <div class="metric-value" style="color: var(--sema-pos);" id="taskCompletionPct">0%</div>
+                        </div>
+                        <div class="progress progress-dark mt-1" style="height: 10px;">
+                            <div id="taskCompletionGauge" class="progress-bar" role="progressbar"
+                                style="width: 0%; background-color: var(--sema-pos);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Main Analytics Body (Split View) -->
+            <div class="row g-4">
+
+                <!-- Left Side: Diarized Transcript -->
+                <div class="col-12 col-lg-7">
+                    <div class="glass-panel h-100 p-4">
+                        <h5 class="mb-4 text-muted-custom fs-6 text-uppercase">Transcript Log</h5>
+                        <div id="transcriptContent" class="transcript-box pe-2">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Visual Insights -->
+                <div class="col-12 col-lg-5 d-flex flex-column gap-4">
+
+                    <!-- Share & Ranking Block -->
+                    <div class="glass-panel p-4">
+                        <div class="row align-items-center">
+                            <div class="col-5 border-end border-subtle">
+                                <h5 class="text-muted-custom fs-6 text-uppercase mb-3">Speak Share</h5>
+                                <div style="height: 150px; width: 100%;">
+                                    <canvas id="speakingShareChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-7 ps-4">
+                                <h5 class="text-muted-custom fs-6 text-uppercase mb-3">Leaderboard</h5>
+                                <div id="leaderboardContainer" class="d-flex flex-column gap-3">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Speaker Deep-Dive (Accordions) -->
+                    <div class="glass-panel p-4">
+                        <h5 class="text-muted-custom fs-6 text-uppercase mb-4">Speaker Deep Dive</h5>
+                        <div id="speakerAccordions">
+                            <!-- Populated iteratively by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Interaction Dynamics Radar Chart -->
+                    <div class="glass-panel p-4 flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="text-muted-custom fs-6 text-uppercase">Interaction Dynamics</h5>
+                        </div>
+
+                        <div style="height: 220px; width: 100%;" class="mb-4">
+                            <canvas id="interactionRadarChart"></canvas>
+                        </div>
+
+                        <!-- Alignment Slider -->
+                        <div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted-custom text-uppercase" style="font-size:0.75rem;"><i
+                                        class="fa-solid fa-handshake-angle me-2 sw-pos"></i>Agreement</span>
+                                <span class="text-muted-custom text-uppercase" style="font-size:0.75rem;">Conflict<i
+                                        class="fa-solid fa-bolt ms-2 sw-neg"></i></span>
+                            </div>
+                            <div class="progress progress-dark">
+                                <div id="conflictSlider" class="progress-bar bg-secondary" role="progressbar"
+                                    style="width: 50%;"></div>
+                            </div>
                         </div>
                     </div>
 
                 </div>
+
             </div>
+
         </div>
-
     </div>
-</div>
 
-<!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>
